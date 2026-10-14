@@ -1,68 +1,71 @@
-# Mori and Krull algorithms
+# morikrull
 
-This is a C++20 implementation of the finite tests described in Sections 4 and 5 of
-the accompanying paper. It handles:
+Decides the Mori and Krull properties for the additive evaluation monoids
+`N_0[alpha_1, ..., alpha_n]` of the paper: the cyclic case of Section 5 in any degree, and
+the quadratic multigenerator case of Section 4.
 
-- Mori and Krull decisions for additive evaluation monoids in a real quadratic field;
-- construction of a finite additive generating set in the positive quadratic cases;
-- the cyclic Mori classification from the minimal polynomial;
-- the cyclic Krull algorithm, including the generating-index search and a Hilbert-basis
-  saturation test.
+Needs FLINT, GMP, and Normaliz with its C++ headers.
 
-All root-counting, semigroup, lattice, and quadratic-field calculations use exact
-arbitrary-precision integer or rational arithmetic.
-
-The only build dependency is the header-only Boost.Multiprecision library.
-
-## Build and test
+## Build
 
 ```sh
-cmake -S . -B build
+cmake -S . -B build -DNORMALIZ_ROOT=/path/to/normaliz/prefix
 cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-## Input
+## Run
 
-Quadratic generators are pairs `a,b`, meaning `a + b*sqrt(D)`. Rational coordinates
-use `p/q`. The implementation requires positive squarefree `D` and generators spanning
-the quadratic field.
-
-```sh
-./build/morikrull quadratic-mori 5 1/2,1/2
-./build/morikrull quadratic-krull 2 0,2 0,3
+```
+morikrull mori  <generator> [<generator> ...]
+morikrull krull <generator> [<generator> ...]
 ```
 
-Cyclic input is the minimal polynomial, with coefficients in constant-first order.
-The program assumes the polynomial supplied really is minimal over Q.
+A generator is the minimal polynomial of a positive algebraic number, constant coefficient
+first, `p/q` allowed. So `sqrt 2` is `-2,0,1` and the golden ratio is `-1,-1,1`.
 
 ```sh
-./build/morikrull cyclic-mori -1,-1,1
-./build/morikrull cyclic-krull -2,0,1
-./build/morikrull cyclic-krull -5,2,-2,1
+./build/morikrull krull -2,0,1           # sqrt 2
+./build/morikrull krull -5,2,-2,1        # the real root of X^3 - 2X^2 + 2X - 5
+./build/morikrull krull -5,0,1 -1,-1,1   # sqrt 5 and the golden ratio
 ```
 
-For a finite monoid, `alpha^j = [v0, ...]` reports the coordinates of the additive
-generator in the basis `1, alpha, ..., alpha^(d-1)`. A failed Krull test also prints a
-lattice hole witnessing failure of integer divisor closedness.
+One generator works in any degree. Several only work when they generate a quadratic field,
+which the program finds from the polynomials — you do not have to name it. Append `@` and a
+nearby value to pick between two positive roots:
 
-## Algorithms
+```sh
+./build/morikrull krull 5,-5,1@3.6 -5,0,1   # (5 + sqrt 5)/2, not (5 - sqrt 5)/2
+```
 
-For the quadratic Mori test, the program checks exactly that every input is a weak
-Perron algebraic integer and that at least one conjugate is negative. It then enumerates
-monomials by total degree until the current additive span is closed under multiplication
-by every input generator. This is the terminating search from Theorem 4.2.
+Output is the verdict, the reason, and the generating set. For one generator
+`alpha^j = [...]` is in the basis `1, alpha, ..., alpha^(d-1)`; for several, elements print
+as `a + b*sqrt(D)` and the set is `G_m` straight from Section 4, so it can carry a monomial
+the others already span. A failed Krull test adds the lattice hole witnessing it.
 
-For cyclic input, a Sturm sequence counts positive roots exactly. The modulus test uses
-the characteristic polynomial of the tensor square of the companion matrix: its roots
-are all products of two conjugates, so a positive root above `alpha^2` exists exactly
-when some conjugate has modulus above `alpha`. Once finite generation passes, powers
-are reduced through the minimal-polynomial recurrence. The first power in the additive
-span of its predecessors is the generating index.
+```
+$ ./build/morikrull krull -5,2,-2,1
+Krull: false
+reason: not integer divisor closed in q(H)
+additive generators (4):
+  alpha^0 = [1, 0, 0]
+  alpha^1 = [0, 1, 0]
+  alpha^2 = [0, 0, 1]
+  alpha^3 = [5, -2, 2]
+Hilbert basis (5):
+  [0, 0, 1]
+  [0, 1, 0]
+  [1, 0, 0]
+  [3, -1, 1]
+  [5, -2, 2]
+lattice hole: [3, -1, 1]
+```
 
-The Krull tests identify the quotient group with an integer lattice. The cone is covered
-by all full-dimensional simplicial subcones. Lattice points in their half-open fundamental
-parallelepipeds give a finite generating set for the cone lattice monoid; deleting
-decomposable points leaves its Hilbert basis. Membership of each Hilbert-basis point in
-the original affine monoid is decided by bounded exact integer enumeration against a
-strictly positive dual-cone functional.
+Bad input exits 1 with a message on stderr.
+
+## Files
+
+    include/morikrull.hpp  library interface
+    src/morikrull.cpp      the three procedures of the paper
+    src/main.cpp           command line front end
+    tests/regression.sh    Examples 4.1, 5.6, 5.7, 5.8, 5.9 and the rejected input
