@@ -46,7 +46,7 @@ the others already span. A failed Krull test adds the lattice hole witnessing it
 ```
 $ ./build/morikrull krull -5,2,-2,1
 Krull: false
-reason: not integer divisor closed in q(H)
+reason: not idv closed in q(H)
 additive generators (4):
   alpha^0 = [1, 0, 0]
   alpha^1 = [0, 1, 0]

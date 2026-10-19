@@ -17,31 +17,41 @@ std::vector<std::string> split(const std::string& text, char separator)
   std::vector<std::string> pieces;
   std::stringstream line(text);
   std::string piece;
-  while (std::getline(line, piece, separator)) pieces.push_back(piece);
+  while(std::getline(line, piece, separator)) {
+    pieces.push_back(piece);
+  }
   return pieces;
 }
 
 Generator parse(const std::string& argument)
 {
   size_t at = argument.find('@');
-  if (at == std::string::npos) return {split(argument, ','), ""};
+  if(at == std::string::npos) {
+    return {split(argument, ','), ""};
+  }
   return {split(argument.substr(0, at), ','), argument.substr(at + 1)};
 }
 
-void print_result(const Result& result)
+void print_result(const Result& res)
 {
-  std::cout << result.property << ": " << (result.holds ? "true" : "false") << '\n';
-  std::cout << "reason: " << result.reason << '\n';
+  std::cout << res.property << ": " << (res.holds ? "true" : "false") << '\n';
+  std::cout << "reason: " << res.reason << '\n';
 
-  if (!result.generators.empty()) {
-    std::cout << "additive generators (" << result.generators.size() << "):\n";
-    for (const auto& generator : result.generators) std::cout << "  " << generator << '\n';
+  if(!res.gens.empty()) {
+    std::cout << "additive generators (" << res.gens.size() << "):\n";
+    for(const auto& gen : res.gens) {
+      std::cout << "  " << gen << '\n';
+    }
   }
-  if (!result.hilbert_basis.empty()) {
-    std::cout << "Hilbert basis (" << result.hilbert_basis.size() << "):\n";
-    for (const auto& point : result.hilbert_basis) std::cout << "  " << point << '\n';
+  if(!res.hilbert_basis.empty()) {
+    std::cout << "Hilbert basis (" << res.hilbert_basis.size() << "):\n";
+    for(const auto& point : res.hilbert_basis) {
+      std::cout << "  " << point << '\n';
+    }
   }
-  if (!result.hole.empty()) std::cout << "lattice hole: " << result.hole << '\n';
+  if(!res.hole.empty()) {
+    std::cout << "lattice hole: " << res.hole << '\n';
+  }
 }
 
 [[noreturn]] void usage()
@@ -63,14 +73,20 @@ void print_result(const Result& result)
 
 int run(int argc, char** argv)
 {
-  if (argc < 3) usage();
+  if(argc < 3) {
+    usage();
+  }
   std::string mode = argv[1];
-  if (mode != "mori" && mode != "krull") usage();
+  if(mode != "mori" && mode != "krull") {
+    usage();
+  }
 
-  std::vector<Generator> generators;
-  for (int i = 2; i < argc; ++i) generators.push_back(parse(argv[i]));
+  std::vector<Generator> gens;
+  for(int i = 2; i < argc; ++i) {
+    gens.push_back(parse(argv[i]));
+  }
 
-  print_result(mode == "mori" ? morikrull::mori(generators) : morikrull::krull(generators));
+  print_result(mode == "mori" ? morikrull::mori(gens) : morikrull::krull(gens));
   return 0;
 }
 
@@ -80,7 +96,7 @@ int main(int argc, char** argv)
 {
   try {
     return run(argc, argv);
-  } catch (const std::exception& error) {
+  } catch(const std::exception& error) {
     std::cerr << "error: " << error.what() << '\n';
     return 1;
   }
