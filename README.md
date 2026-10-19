@@ -1,7 +1,7 @@
 # morikrull
 
-Decides the Mori and Krull properties for the additive evaluation monoids
-`N_0[alpha_1, ..., alpha_n]` of the paper: the cyclic case of Section 5 in any degree, and
+Decides Mori and Krull properties for the additive evaluation monoids
+`N_0[alpha_1, ..., alpha_n]` of Yau paper: the cyclic case of Section 5 in any degree, and
 the quadratic multigenerator case of Section 4.
 
 Needs FLINT, GMP, and Normaliz with its C++ headers.
@@ -38,8 +38,8 @@ nearby value to pick between two positive roots:
 ./build/morikrull krull 5,-5,1@3.6 -5,0,1   # (5 + sqrt 5)/2, not (5 - sqrt 5)/2
 ```
 
-Output is the verdict, the reason, and the generating set. For one generator
-`alpha^j = [...]` is in the basis `1, alpha, ..., alpha^(d-1)`; for several, elements print
+Output contains the verdict, the reason, and the generating set. For one generator
+`alpha^j = [...]` is in the basis `1, alpha, ..., alpha^(d-1)`, and for several, elements print
 as `a + b*sqrt(D)` and the set is `G_m` straight from Section 4, so it can carry a monomial
 the others already span. A failed Krull test adds the lattice hole witnessing it.
 
